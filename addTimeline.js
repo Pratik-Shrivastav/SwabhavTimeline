@@ -14,21 +14,23 @@ const populateBatch = async () => {
     const batchSelect = document.querySelectorAll("#batch");
 
     batchSelect.forEach((batchDataElement) => {
-        batchDataElement.innerHTML = "";
-        const defaultOption = document.createElement("option");
-        defaultOption.value = "";
-        defaultOption.textContent = "Select Batch";
-        batchDataElement.appendChild(defaultOption);
-        batchData.forEach((data) => {
+        const optionsCheck = batchDataElement.querySelectorAll("option");
+        if(optionsCheck.length==0){
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = "Select Batch";
+            batchDataElement.appendChild(defaultOption);
+            batchData.forEach((data) => {
             const option = document.createElement("option");
             option.innerText = data.name;
             batchDataElement.appendChild(option);
         })
-
+        }
     })
 
 };
 populateBatch();
+
 const populateProject = async () => {
     const url = "https://localhost:7042/api/Project";
 
@@ -36,19 +38,19 @@ const populateProject = async () => {
     console.log(projectData);
     const projectSelect = document.querySelectorAll("#project");
     projectSelect.forEach((projectSelectElement) => {
-        projectSelectElement.innerHTML = "";
-        const defaultOption = document.createElement("option");
-        defaultOption.value = "";
-        defaultOption.textContent = "Select Project";
-        projectSelectElement.appendChild(defaultOption);
-        projectData.forEach((data) => {
+        const optionsCheck = projectSelectElement.querySelectorAll("option");
+        if(optionsCheck.length==0){
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = "Select Project";
+            projectSelectElement.appendChild(defaultOption);
+            projectData.forEach((data) => {
             const option = document.createElement("option");
             option.innerText = data.name;
             projectSelectElement.appendChild(option);
         })
-
+        } 
     })
-
 };
 populateProject();
 
@@ -58,17 +60,22 @@ const populateSubProject = async () => {
     const subProjectData = await getData(url);
     console.log(subProjectData);
     const subProjectSelect = document.querySelectorAll("#subProject");
+
     subProjectSelect.forEach((subProjectElement) => {
-        subProjectElement.innerHTML = "";
-        const defaultOption = document.createElement("option");
-        defaultOption.value = "";
-        defaultOption.textContent = "Select Sub-Project";
-        subProjectElement.appendChild(defaultOption);
-        subProjectData.forEach((data) => {
-            const option = document.createElement("option");
-            option.innerText = data.name;
-            subProjectElement.appendChild(option);
-        })
+        const optionsCheck = subProjectElement.querySelectorAll("option");
+        if (optionsCheck.length==0) {
+            const defaultOption = document.createElement("option");
+            defaultOption.value = "";
+            defaultOption.textContent = "Select Sub-Project";
+            subProjectElement.appendChild(defaultOption);
+            subProjectData.forEach((data) => {
+                const option = document.createElement("option");
+                option.innerText = data.name;
+                subProjectElement.appendChild(option);
+            })
+
+        }
+
 
     })
 
@@ -108,9 +115,9 @@ const addActivityForm = async () => {
                             </div>`;
 
     const deleteActivity = document.createElement("button");
-    deleteActivity.innerText="Delete Activity";
-    deleteActivity.classList="btn btn-danger";
-    deleteActivity.addEventListener("click",()=>deleteNewActivity(formDiv));
+    deleteActivity.innerText = "Delete Activity";
+    deleteActivity.classList = "btn btn-danger";
+    deleteActivity.addEventListener("click", () => deleteNewActivity(formDiv));
     formDiv.appendChild(deleteActivity);
 
     const button = document.querySelector("#buttonDiv");
@@ -120,13 +127,13 @@ const addActivityForm = async () => {
     populateBatch();
 }
 
-const deleteNewActivity =(formDiv)=>{
+const deleteNewActivity = (formDiv) => {
     formDiv.remove();
 }
 
 const previewButton = () => {
     const date = document.querySelector("#date").value;
-    const holiday = document.querySelector("#holiday").value=== "true" ? true : false;
+    const holiday = document.querySelector("#holiday").value === "true" ? true : false;
     const projects = document.querySelectorAll("#project");
     const subProjects = document.querySelectorAll("#subProject");
     const batchs = document.querySelectorAll("#batch");
@@ -141,8 +148,8 @@ const previewButton = () => {
             projectName: projects[i].value,
             subProjectName: subProjects[i].value,
             batchName: batchs[i].value,
-            hours: isNaN(parseInt(hours[i].value))?0:parseInt(hours[i].value),
-            minutes: isNaN(parseInt(minutes[i].value))?0:parseInt(minutes[i].value),
+            hours: isNaN(parseInt(hours[i].value)) ? 0 : parseInt(hours[i].value),
+            minutes: isNaN(parseInt(minutes[i].value)) ? 0 : parseInt(minutes[i].value),
             comments: comments[i].value
         }
         activityList.push(activity);
@@ -213,7 +220,7 @@ const previewFunction = (activityList, holiday, date) => {
         const submitButtonPost = document.createElement("button");
         submitButtonPost.classList = "btn btn-primary";
         submitButtonPost.innerText = "Submit";
-        submitButtonPost.addEventListener("click",()=>postTimeLine(date,holiday,activityList))
+        submitButtonPost.addEventListener("click", () => postTimeLine(date, holiday, activityList))
         buttonRow.appendChild(submitButtonPost);
 
         const closeButton = document.createElement("button");
@@ -239,16 +246,25 @@ const previewFunction = (activityList, holiday, date) => {
 }
 
 
-const postTimeLine = async (date,onLeave,activityList)=>{
+const postTimeLine = async (date, onLeave, activityList) => {
     const url = "https://localhost:7042/api/TimeLine";
     const token = localStorage.getItem('authToken');
-    const requestData = {
-        date: date,
-        onLeave: onLeave,
-        activityList: activityList
-    };
-    console.log(requestData);      
-    
+    let requestData = {};
+    if (onLeave) {
+        requestData = {
+            date: date,
+            onLeave: onLeave
+        };
+    } else {
+        requestData = {
+            date: date,
+            onLeave: onLeave,
+            activityList: activityList
+        };
+    }
+
+    console.log(requestData);
+
     // const testData ={
     //     date: "30-08-2024",
     //     onLeave: false,
@@ -265,15 +281,15 @@ const postTimeLine = async (date,onLeave,activityList)=>{
     //     ]
     //   }
     //   console.log(testData);
-      
-      
-    const response = await fetch(url,{
-        method:"Post",
+
+
+    const response = await fetch(url, {
+        method: "Post",
         headers: {
             'Authorization': `Bearer ${token}`,
             'Content-Type': 'application/json'
         },
-        body: JSON.stringify(requestData) 
+        body: JSON.stringify(requestData)
     })
 
     const data = await response.json();
